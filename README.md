@@ -19,7 +19,7 @@ $ yum install python-flask
 
 For Apache configuration /etc/httpd/base.conf|<ssl.conf>
 
-    WSGIDaemonProcess QMFRacklog user=cchiang group=root threads=5 python-path=/usr/lib/python3.6/site-packages
+    WSGIDaemonProcess qmf_sf user=cchiang group=root threads=5 python-path=/usr/lib/python3.6/site-packages
     WSGIScriptAlias /racklog /home/cchiang/qmf_sf/app.wsgi
 
     <Directory /home/cchiang/qmf_sf >

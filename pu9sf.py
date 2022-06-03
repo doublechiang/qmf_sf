@@ -1,5 +1,3 @@
-from typing import OrderedDict
-from numpy import append
 import requests
 from bs4 import BeautifulSoup
 import requests_cache
@@ -57,7 +55,7 @@ class Pu9sf:
 
             url = f'http://{settings.ip}/RACK_WEB/Forms/Report/frmWIPDetail.aspx'
             p=sess.post(url, data=payload)
-            d =OrderedDict()
+            d =dict()
             soup = BeautifulSoup(p.text, 'html.parser')
             wip_html = soup.find(id='gv2')
             # for th in wip_html.select('th'):
