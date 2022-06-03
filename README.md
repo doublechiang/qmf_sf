@@ -10,4 +10,23 @@ Rack Line Data Query -> Query -> Base Query
 python -m unittest
 
 # Documentation.
-pdoc --html --config show_source_code=False . --force
+
+
+# Deployment
+## To Apache WSGI
+On CentOS
+$ yum install python-flask
+
+For Apache configuration /etc/httpd/base.conf|<ssl.conf>
+
+    WSGIDaemonProcess QMFRacklog user=cchiang group=root threads=5 python-path=/usr/lib/python3.6/site-packages
+    WSGIScriptAlias /racklog /home/cchiang/qmf_sf/app.wsgi
+
+    <Directory /home/cchiang/qmf_sf >
+        LogLevel info
+        WSGIProcessGroup qmf_sf
+        WSGIApplicationGroup %{GLOBAL}
+        Require all granted
+    </Directory>
+
+
