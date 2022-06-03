@@ -6,95 +6,76 @@ import requests_cache
 
 import settings
 
-def login_seesion(sess, payload):
-    url = 'http://10.243.20.207/RACK_WEB/'
-    login_cred = {
-        'username' : settings.username,
-        'password' : settings.password,
-        'btnLogin' : 'Login'
-    }
-    r = sess.get(url)
-    asp_tags = get_hidden_input(r.content)
-    login_cred.update(asp_tags)
-    r= sess.post(url, data=login_cred)
-    tags = get_hidden_input(r.content)
-    return tags
 
-
-
-def get_hidden_input(content):
-    """ Return the dict contain the hidden input 
+class Pu9sf:
+    """ PU 9 Shop flow API 
     """
-    tags = dict()
-    soup =BeautifulSoup(content, 'html.parser')
-    hidden_tags = soup.find_all('input', type='hidden')
-    # print(*hidden_tags)
-    for tag in hidden_tags:
-        tags[tag.get('name')] = tag.get('value')
-    
-    return tags
 
+    def __get_hidden_input(self, content):
+        """ Return the dict contain the hidden input 
+        """
+        tags = dict()
+        soup =BeautifulSoup(content, 'html.parser')
+        hidden_tags = soup.find_all('input', type='hidden')
+        # print(*hidden_tags)
+        for tag in hidden_tags:
+            tags[tag.get('name')] = tag.get('value')
+        
+        return tags
 
-def wip_test_monitor():
-    racks = []
-
-    with requests_cache.CachedSession('big_data_cache') as sess:
-    # with requests.Session() as sess:
-        # p = sess.post(url, data=payload)
-        # print(p.text)
-
-        payload = {
-            'Title': 'TEST MONITOR',
-            'Site' : 'QMF',
-            'Item' : 'RackTesting',
-            'Type' : 'PO',
-            'Customer' : '',
-            'Model' : '',
-            'Num' : ''
+    def __login_session(self, sess):
+        url = f'http://{settings.ip}/RACK_WEB/'
+        login_cred = {
+            'username' : settings.username,
+            'password' : settings.password,
+            'btnLogin' : 'Login'
         }
+        r = sess.get(url)
+        asp_tags = self.__get_hidden_input(r.content)
+        login_cred.update(asp_tags)
+        r= sess.post(url, data=login_cred)
+        tags = self.__get_hidden_input(r.content)
+        return tags
 
-        url = 'http://10.243.20.207/RACK_WEB/Forms/Report/frmWIPDetail.aspx'
-        p=sess.post(url, data=payload)
-        # print(p.text)
-        d =OrderedDict()
-        soup = BeautifulSoup(p.text, 'html.parser')
-        wip_html = soup.find(id='gv2')
-        # for th in wip_html.select('th'):
-        #     print(th.text.strip())
-        header = list(map(lambda x: x.text.strip(), wip_html.select('th')))
-        # print(header)
+    def wip(self):
+        racks = []
 
-        for r in wip_html.select('tr')[1:]:
-            rack_info = list(map(lambda x: x.text.strip(), r.select('td')))
-            d = dict(zip(header, rack_info))
-            racks.append(d)
+        # with requests_cache.CachedSession('big_data_cache') as sess:
+        with requests.Session() as sess:
+            # p = sess.post(url, data=payload)
+            # print(p.text)
 
-    return racks
+            payload = {
+                'Title': 'TEST MONITOR',
+                'Site' : 'QMF',
+                'Item' : 'RackTesting',
+                'Type' : 'PO',
+                'Customer' : '',
+                'Model' : '',
+                'Num' : ''
+            }
 
+            url = f'http://{settings.ip}/RACK_WEB/Forms/Report/frmWIPDetail.aspx'
+            p=sess.post(url, data=payload)
+            d =OrderedDict()
+            soup = BeautifulSoup(p.text, 'html.parser')
+            wip_html = soup.find(id='gv2')
+            # for th in wip_html.select('th'):
+            #     print(th.text.strip())
+            header = list(map(lambda x: x.text.strip(), wip_html.select('th')))
+            # print(header)
 
-def base_query_racklink(sn):
+            for r in wip_html.select('tr')[1:]:
+                rack_info = list(map(lambda x: x.text.strip(), r.select('td')))
+                d = dict(zip(header, rack_info))
+                racks.append(d)
 
-    main_frm = 'http://10.243.20.207/RACK_WEB/Forms/Main/frmMain.aspx'
-    base_frm = 'http://10.243.20.207/RACK_WEB/Forms/Report/frmRacklinkQuery.aspx'
-    racklink_payload = {
-        'dlSite' : 'QMF',
-        'dlReportType' : 'RackLink',
-        'dlConditions' : 'RackSN',
-        'txtConditionsValue' : sn,
-        'txtDateStart' : None,
-        'txtDateEnd' : None,
-        'btnQuery' : 'Query',
-        'btnExcel' : 'To Excel(csv)'
-    }
+        return racks
 
-    racklink=[]
+    def racklink(self, racksn):
+        base_frm = f'http://{settings.ip}/RACK_WEB/Forms/Report/frmRacklinkQuery.aspx'
 
-    # with requests_cache.CachedSession('big_data_cache') as sess:
-    with requests.Session() as sess:
         payload = {}
-        headers = {
-            'User-Agent' : 'Mozilla/5.0'
-        }
 
         sel_report_type =  {
             '__EVENTTARGET' : 'dlReportType',
@@ -114,47 +95,49 @@ def base_query_racklink(sn):
         }
 
         sel_racksn = {
-            # '__EVENTTARGET' : 'btnQuery',
             '__EVENTTARGET' : 'btnExcel',
             'dlSite': 'QMF',
             'dlReportType': 'RackLink',
             'dlConditions': 'RackSN',
-            'txtConditionsValue' : sn
+            'txtConditionsValue' : racksn
         }
+        racklink=[]
 
-        # sess.headers.update(headers)
-        asp_tags = login_seesion(sess, payload)
+        # with requests_cache.CachedSession('big_data_cache') as sess:
+        with requests.Session() as sess:
 
-        r=sess.get(base_frm)
-        asp_tags = get_hidden_input(r.content)
-        payload = asp_tags
-        payload.update(sel_report_type)
-        r=sess.post(base_frm, data=payload)
-        asp_tags = get_hidden_input(r.content)
-        payload = asp_tags
-        payload.update(sel_conditions)
-        r=sess.post(base_frm, data=payload) 
-        asp_tags = get_hidden_input(r.content)
-        payload=asp_tags
-        payload.update(sel_racksn)
-        r=sess.post(base_frm, data=payload)
-        if (r.status_code == 200):
-            # Processing CSV code, tab separated.
-            buf = r.text.splitlines()
-            header = False
-            for line in buf:
-                if header is False:
-                    header = line.split('\t')
-                row = dict(zip(header, line.split('\t')))
-                racklink.append(row)
-        
-        print(racklink)
-        return racklink
-        
+            # sess.headers.update(headers)
+            self.__login_session(sess)
+            r=sess.get(base_frm)
+            attrs = self.__get_hidden_input(r.content)
+            attrs.update(sel_report_type)
+            r=sess.post(base_frm, data=attrs)
+            attrs = self.__get_hidden_input(r.content)
+            attrs.update(sel_conditions)
+            r=sess.post(base_frm, data=attrs) 
+            attrs = self.__get_hidden_input(r.content)
+            attrs.update(sel_racksn)
+            r=sess.post(base_frm, data=attrs)
+            if (r.status_code == 200):
+                # Processing CSV code, tab separated.
+                buf = r.text.splitlines()
+                header = False
+                for line in buf:
+                    if header is False:
+                        header = line.split('\t')
+                    row = dict(zip(header, line.split('\t')))
+                    racklink.append(row)
+            
+            return racklink
+
+
+    def __init__(self):
+        self.ip = settings.ip
+
+   
 
 if __name__ == '__main__':
-    # racks = wip_test_monitor()    
-    base_query_racklink('R21932204000601E')
+    pass
      
 
 
