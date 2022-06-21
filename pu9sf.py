@@ -1,3 +1,4 @@
+import string
 import requests
 from bs4 import BeautifulSoup
 import requests_cache
@@ -70,15 +71,18 @@ class Pu9sf:
 
         return racks
 
-    def racklink(self, racksn):
-        base_frm = f'http://{settings.ip}/RACK_WEB/Forms/Report/frmRacklinkQuery.aspx'
+    def __base_query(self, racksn, reportType: string):
 
-        payload = {}
+        result=[]
+        if racksn is None:
+            return result
+            
+        base_frm = f'http://{settings.ip}/RACK_WEB/Forms/Report/frmRacklinkQuery.aspx'
 
         sel_report_type =  {
             '__EVENTTARGET' : 'dlReportType',
             'dlSite' : 'QMF',
-            'dlReportType' : 'RackLink',
+            'dlReportType' : reportType,
             'dlConditions' : 'RackSN',
             'txtConditionsValue' : None
         }
@@ -86,7 +90,7 @@ class Pu9sf:
         sel_conditions =  {
             '__EVENTTARGET': 'dlConditions',
             'dlSite': 'QMF',
-            'dlReportType': 'RackLink',
+            'dlReportType': reportType,
             'dlConditions': 'RackSN',
             'txtDateStart': None,
             'txtDateEnd': None 
@@ -95,11 +99,10 @@ class Pu9sf:
         sel_racksn = {
             '__EVENTTARGET' : 'btnExcel',
             'dlSite': 'QMF',
-            'dlReportType': 'RackLink',
+            'dlReportType': reportType,
             'dlConditions': 'RackSN',
             'txtConditionsValue' : racksn
         }
-        racklink=[]
 
         # with requests_cache.CachedSession('big_data_cache') as sess:
         with requests.Session() as sess:
@@ -123,10 +126,20 @@ class Pu9sf:
                 for line in buf:
                     if header is False:
                         header = line.split('\t')
+                        continue
                     row = dict(zip(header, line.split('\t')))
-                    racklink.append(row)
+                    result.append(row)
             
-            return racklink
+            return result
+
+
+    def racklink(self, racksn):
+        return self.__base_query(racksn, 'RackLink')
+
+    def monitor(self, racksn):
+        """ Get the Test Monitor from RackSn 
+        """
+        return self.__base_query(racksn, 'MonitorTest')
 
 
     def __init__(self):

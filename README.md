@@ -6,6 +6,9 @@ Rack Line Data Query -> RealTimeMonitor -> WIPQuery
 ## Get Racklink 
 Rack Line Data Query -> Query -> Base Query
 
+## Get Monitor Test
+Rack Line Data Query -> Query -> Base Query
+
 # Test
 python -m unittest
 

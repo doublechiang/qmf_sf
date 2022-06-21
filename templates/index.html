@@ -1,0 +1,20 @@
+<html>
+    <H1>PU9 Big Data API</H1>
+    <table>
+        <tr><th>API</th><th>Description</th></tr>
+        <tr>
+            <td><a href="{{ url_for('wip_rack')}}">WIP Rack</a></td>
+            <td>Get the WIP Racks</td>
+        </tr>
+        <tr>
+            <td><a href="{{ url_for('racklink', racksn=racksn) }}">Get Rack Link</a></td>
+            <td>Get a Rack Components from a rack Serial number</td>
+        </tr>
+        <tr>
+            <td><a href="{{ url_for('monitor', racksn=racksn) }}">Get Monitor Test by Rack SN</a></td>
+            <td>Get Monitor Test from a rack Serial number</td>
+        </tr>
+
+
+    </table>
+</html>
